@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF to Audio Converter</title>
+</head>
+
+<body>
+  <h1>Convert PDF to Audio</h1>
+  <form id="uploadForm">
+    <label for="pdfInput">Upload PDF:</label>
+    <input type="file" id="pdfInput" accept=".pdf" required />
+    <button type="submit">Convert</button>
+  </form>
+  <form id="textForm">
+    <label for="pdfInput">Write Text:</label>
+    <textarea type="text" id="input" required></textarea>
+    <button type="submit">Convert</button>
+  </form>
+  <p id="status"></p>
+
+  <script>
+    const uploadForm = document.getElementById('uploadForm');
+    const textForm = document.getElementById('textForm');
+    const statusElement = document.getElementById('status');
+
+    uploadForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const pdfInput = document.getElementById('pdfInput').files[0];
+      if (!pdfInput) {
+        statusElement.textContent = "Please select a PDF file.";
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('pdf', pdfInput);
+
+      statusElement.textContent = "Uploading and converting, please wait...";
+
+      try {
+        const response = await fetch('http://localhost:8000/convert', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText || 'Failed to convert PDF');
+        }
+
+        // Download the audio file
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'output.mp3';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        statusElement.textContent = "Conversion successful. Downloading the audio...";
+      } catch (error) {
+        console.error(error);
+        statusElement.textContent = `Error: ${error.message}`;
+      }
+    });
+
+    textForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const input = document.getElementById('input').value;
+      if (!input) {
+        statusElement.textContent = "Please enter some text.";
+        return;
+      }
+
+      try {
+        const response = await fetch('http://localhost:8000/text-to-audio', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ text: input }),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText || 'Failed to convert text to audio');
+        }
+
+        // Download the audio file
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'output.mp3';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        statusElement.textContent = "Conversion successful. Downloading the audio...";
+      } catch (error) {
+        console.error(error);
+        statusElement.textContent = `Error: ${error.message}`;
+      }
+    });
+  </script>
+</body>
+
+</html>
