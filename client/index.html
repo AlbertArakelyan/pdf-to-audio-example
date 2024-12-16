@@ -17,6 +17,11 @@
   <form id="textForm">
     <label for="pdfInput">Write Text:</label>
     <textarea type="text" id="input" required></textarea>
+    <label for="language">Language:</label>
+    <select id="language">
+      <option value="en">English</option>
+      <option value="ru">Russian</option>
+    </select>
     <button type="submit">Convert</button>
   </form>
   <p id="status"></p>
@@ -77,8 +82,10 @@
         return;
       }
 
+      const lang = document.getElementById('language').value;
+
       try {
-        const response = await fetch('http://localhost:8000/text-to-audio', {
+        const response = await fetch(`http://localhost:8000/text-to-audio?lang=${lang}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

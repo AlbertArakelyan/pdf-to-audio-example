@@ -66,13 +66,14 @@ app.post('/convert', upload.single('pdf'), async (req, res) => {
 app.post('/text-to-audio', async (req, res) => {
   try {
     const { text } = req.body;
+    const { lang = 'en' } = req.query;
 
     if (!text || !text.trim()) {
       return res.status(400).send('No text provided or text is empty');
     }
 
     // Convert text to speech
-    const gtts = new gTTS(text, 'en'); // Language: 'en' for English
+    const gtts = new gTTS(text, lang); // Language: 'en' for English
     const audioPath = `output-${Date.now()}.mp3`;
 
     gtts.save(audioPath, (err) => {
